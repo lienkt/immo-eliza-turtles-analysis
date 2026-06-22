@@ -17,3 +17,5 @@ new_column_names = {"peb_category": "energy_consumption_kWh/m2/year",
 clean_df = raw_df.rename(columns=new_column_names)
 
 clean_df.to_json("./data/cleaned/clean_dataframe.json", orient="records", force_ascii=False, indent=4)
+
+clean_df.info()
