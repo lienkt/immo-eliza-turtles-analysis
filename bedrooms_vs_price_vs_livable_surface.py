@@ -9,6 +9,7 @@ DATA_PATH = "./data/cleaned/clean_dataframe.json"
 FIXED_DATA_PATH = "./data/cleaned/clean_dataframe_fixed.json"
 PRICE_SURFACE_IMAGE = "./images/price_vs_livable_surface.png"
 BEDROOM_IMAGE = "./images/bedrooms_vs_price.png"
+OUTLIER_IMAGE = "./images/outlier_boxplots.png"
 
 
 def euro_tick(value, _):
@@ -131,12 +132,63 @@ def make_bedrooms_vs_price_graph(df):
     plt.savefig(BEDROOM_IMAGE, dpi=180)
     plt.close()
 
+def make_outlier_graph(df):
+    # Numeric columns that make sense for the outlier question.
+    columns = {
+        "price": "Price",
+        "livable_surface": "Livable surface",
+        "total_surface": "Total surface",
+        "bedroom_count": "Bedroom count",
+    }
+
+    outlier_counts = []
+    for col in columns:
+        series = df[col].dropna()
+        q1 = series.quantile(0.25)
+        q3 = series.quantile(0.75)
+        iqr = q3 - q1
+
+        # IQR rule: values outside this range are unusually far from the middle 50%.
+        lower = q1 - 1.5 * iqr
+        upper = q3 + 1.5 * iqr
+        n_outliers = int(((series < lower) | (series > upper)).sum())
+        outlier_counts.append(
+            {
+                "variable": columns[col],
+                "outliers": n_outliers,
+                "percentage": n_outliers / len(series) * 100,
+            }
+        )
+
+    outlier_df = pd.DataFrame(outlier_counts).sort_values("outliers")
+
+    plt.figure(figsize=(10, 5))
+    bars = plt.barh(outlier_df["variable"], outlier_df["outliers"], color="#4c78a8")
+
+    for bar, percentage in zip(bars, outlier_df["percentage"]):
+        plt.text(
+            bar.get_width(),
+            bar.get_y() + bar.get_height() / 2,
+            f"  {int(bar.get_width())} ({percentage:.1f}%)",
+            va="center",
+        )
+
+    plt.title("Which variables have the most outliers?")
+    plt.xlabel("Number of outliers")
+    plt.ylabel("Variable")
+    plt.grid(alpha=0.25, axis="x")
+    plt.tight_layout()
+    plt.savefig(OUTLIER_IMAGE, dpi=180)
+    plt.close()
+
+
 def main():
     df = load_and_fix_data()
     make_price_vs_surface_graph(df)
     make_bedrooms_vs_price_graph(df)
+    make_outlier_graph(df)
 
-    print("Done: fixed price file and 2 graphs saved!")
+    print("Done: fixed price file and 3 graphs saved!")
 
 
 if __name__ == "__main__":
