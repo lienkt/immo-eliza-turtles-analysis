@@ -1,16 +1,12 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
-#exemple import
-#from src.graph_price_surface_outliers import (
-    #make_price_vs_surface_graph,
-    #make_bedrooms_vs_price_graph,
-    #make_outlier_graph,
-
-
-PRICE_SURFACE_IMAGE = "../images/price_vs_livable_surface.png"
-BEDROOM_IMAGE = "../images/bedrooms_vs_price.png"
-OUTLIER_IMAGE = "../images/outlier_boxplots.png"
+PRICE_SURFACE_IMAGE = "./images/price_vs_livable_surface.png"
+BEDROOM_IMAGE = "./images/bedrooms_vs_price.png"
+OUTLIER_IMAGE = "./images/outlier_boxplots.png"
+PROPERTY_STATE_M2_IMAGE = "./images/property_state_price_per_m2.png"
+CONVENIENCE_SPACE_IMAGE = "./images/convenience_vs_space.png"
+BUILD_YEAR_M2_IMAGE = "./images/build_year_price_per_m2.png"
 
 
 def make_price_vs_surface_graph(df):
@@ -178,4 +174,228 @@ def make_outlier_graph(df):
     plt.grid(alpha=0.25, axis="x")
     plt.tight_layout()
     plt.savefig(OUTLIER_IMAGE, dpi=180)
+    plt.close()
+
+
+def make_property_state_price_m2_graph(df):
+    """Generate a bar chart of median price per M2 by property state.
+
+    Input:
+        df: pandas DataFrame with price, livable_surface, property_state, and property_type columns.
+    """
+    def euro_tick(value, _):
+        return f"{int(value):,}"
+
+    # Keep rows where we have the values needed for this graph.
+    graph_df = df[["price", "livable_surface", "property_state", "property_type"]].dropna().copy()
+
+    # Keep only positive numbers so the price per M2 calculation makes sense.
+    graph_df = graph_df[(graph_df["price"] > 0) & (graph_df["livable_surface"] > 0)]
+
+    # Price per M2 lets us compare expensive and cheap areas more fairly.
+    graph_df["price_per_m2"] = graph_df["price"] / graph_df["livable_surface"]
+
+    # Keep realistic values so one strange listing does not dominate the scale.
+    graph_df = graph_df[(graph_df["price_per_m2"] > 300) & (graph_df["price_per_m2"] < 20000)]
+
+    # Group by property state and property type.
+    # Median is useful here because a few luxury listings will not dominate the result.
+    grouped_df = (
+        graph_df.groupby(["property_state", "property_type"])["price_per_m2"]
+        .median()
+        .reset_index()
+    )
+
+    # Put the states in a logical order from worst condition to best condition.
+    order = [
+        "To be renovated",
+        "To renovate",
+        "Normal",
+        "Fully renovated",
+        "Excellent",
+        "New",
+    ]
+    grouped_df["property_state"] = pd.Categorical(
+        grouped_df["property_state"],
+        categories=order,
+        ordered=True,
+    )
+
+    # Reshape the grouped data so houses and apartments become separate bars.
+    grouped_df = grouped_df.dropna().sort_values("property_state")
+    pivot_df = grouped_df.pivot(
+        index="property_state",
+        columns="property_type",
+        values="price_per_m2",
+    )
+
+    ax = pivot_df.plot(kind="bar", figsize=(10, 6), color=["#ff7f0e", "#1f77b4"])
+    ax.set_title("Median price per M2 by property state")
+    ax.set_xlabel("Property state")
+    ax.set_ylabel("Median price per M2 (EUR)")
+    ax.yaxis.set_major_formatter(FuncFormatter(euro_tick))
+    ax.yaxis.offsetText.set_visible(False)
+    plt.xticks(rotation=35, ha="right")
+    plt.grid(alpha=0.25, axis="y")
+    plt.legend(title="Property type")
+    plt.tight_layout()
+    plt.savefig(PROPERTY_STATE_M2_IMAGE, dpi=180)
+    plt.close()
+
+
+def make_convenience_vs_space_graph(df):
+    """Generate a graph comparing supermarket distance, price per M2, and surface.
+
+    Input:
+        df: pandas DataFrame with price, livable_surface, and supermarket_distance_m columns.
+    """
+    def euro_tick(value, _):
+        return f"{int(value):,}"
+
+    # Keep rows where we have the values needed for this graph.
+    graph_df = df[["price", "livable_surface", "supermarket_distance_m"]].dropna().copy()
+
+    # Keep only positive numbers so the price per M2 calculation makes sense.
+    graph_df = graph_df[(graph_df["price"] > 0) & (graph_df["livable_surface"] > 0)]
+
+    # Price per M2 lets us compare convenience and space on a fairer basis.
+    graph_df["price_per_m2"] = graph_df["price"] / graph_df["livable_surface"]
+
+    # Keep realistic values so one strange listing does not dominate the scale.
+    graph_df = graph_df[(graph_df["price_per_m2"] > 300) & (graph_df["price_per_m2"] < 20000)]
+
+    # Split the properties into 4 groups from closest to farthest from a supermarket.
+    graph_df["distance_group"] = pd.qcut(
+        graph_df["supermarket_distance_m"],
+        4,
+        labels=["Closest", "Close", "Far", "Farthest"],
+    )
+
+    # For each distance group, keep the median price per M2, surface, and distance.
+    grouped_df = (
+        graph_df.groupby("distance_group", observed=True)
+        .agg(
+            price_per_m2=("price_per_m2", "median"),
+            livable_surface=("livable_surface", "median"),
+            distance=("supermarket_distance_m", "median"),
+        )
+        .reset_index()
+    )
+
+    fig, ax1 = plt.subplots(figsize=(10, 6))
+    ax2 = ax1.twinx()
+
+    # Bars show median price per M2.
+    ax1.bar(
+        grouped_df["distance_group"],
+        grouped_df["price_per_m2"],
+        color="#4c78a8",
+        alpha=0.8,
+        label="Median price per M2",
+    )
+
+    # The line shows median livable surface on a second axis.
+    ax2.plot(
+        grouped_df["distance_group"],
+        grouped_df["livable_surface"],
+        marker="o",
+        color="#f58518",
+        linewidth=2,
+        label="Median livable surface",
+    )
+
+    # Show the median distance on top of each bar to make the quartiles easier to read.
+    for i, row in grouped_df.iterrows():
+        ax1.text(i, row["price_per_m2"], f"{row['distance']:.0f} m", ha="center", va="bottom")
+
+    ax1.set_title("Convenience vs space")
+    ax1.set_xlabel("Distance to nearest supermarket")
+    ax1.set_ylabel("Median price per M2 (EUR)")
+    ax2.set_ylabel("Median livable surface (m2)")
+    ax1.yaxis.set_major_formatter(FuncFormatter(euro_tick))
+    ax1.yaxis.offsetText.set_visible(False)
+    ax1.grid(alpha=0.25, axis="y")
+    fig.legend(loc="upper right", bbox_to_anchor=(0.9, 0.9))
+    plt.tight_layout()
+    plt.savefig(CONVENIENCE_SPACE_IMAGE, dpi=180)
+    plt.close()
+
+
+def make_build_year_price_m2_graph(df):
+    """Generate a graph comparing build period, price per M2, and energy consumption.
+
+    Input:
+        df: pandas DataFrame with price, livable_surface, build_year, and energy_consumption_kWh/m2/year columns.
+    """
+    def euro_tick(value, _):
+        return f"{int(value):,}"
+
+    # Keep rows where we have the values needed for this graph.
+    graph_df = df[
+        ["price", "livable_surface", "build_year", "energy_consumption_kWh/m2/year"]
+    ].dropna().copy()
+
+    # Keep only rows where price, surface, and build year make sense.
+    graph_df = graph_df[
+        (graph_df["price"] > 0)
+        & (graph_df["livable_surface"] > 0)
+        & (graph_df["build_year"] >= 1800)
+        & (graph_df["build_year"] <= 2026)
+    ]
+
+    # Price per M2 lets us compare old and new properties more fairly.
+    graph_df["price_per_m2"] = graph_df["price"] / graph_df["livable_surface"]
+
+    # Keep realistic values so one strange listing does not dominate the scale.
+    graph_df = graph_df[(graph_df["price_per_m2"] > 300) & (graph_df["price_per_m2"] < 20000)]
+
+    # Group build years into broad periods so the trend is easier to read.
+    graph_df["build_period"] = pd.cut(
+        graph_df["build_year"],
+        bins=[1799, 1918, 1945, 1970, 1990, 2010, 2026],
+        labels=["<=1918", "1919-1945", "1946-1970", "1971-1990", "1991-2010", "2011+"],
+    )
+
+    # For each build period, keep the median price per M2 and median energy consumption.
+    grouped_df = (
+        graph_df.groupby("build_period", observed=True)
+        .agg(
+            price_per_m2=("price_per_m2", "median"),
+            energy=("energy_consumption_kWh/m2/year", "median"),
+        )
+        .reset_index()
+    )
+
+    fig, ax1 = plt.subplots(figsize=(10, 6))
+    ax2 = ax1.twinx()
+
+    # Bars show median price per M2.
+    ax1.bar(
+        grouped_df["build_period"],
+        grouped_df["price_per_m2"],
+        color="#4c78a8",
+        alpha=0.8,
+        label="Median price per M2",
+    )
+
+    # The line shows median energy consumption on a second axis.
+    ax2.plot(
+        grouped_df["build_period"],
+        grouped_df["energy"],
+        marker="o",
+        color="#e45756",
+        linewidth=2,
+        label="Median energy consumption",
+    )
+
+    ax1.set_title("Newer properties: higher price per M2, lower energy consumption")
+    ax1.set_xlabel("Build period")
+    ax1.set_ylabel("Median price per M2 (EUR)")
+    ax2.set_ylabel("Median energy consumption (kWh/m2/year)")
+    ax1.yaxis.set_major_formatter(FuncFormatter(euro_tick))
+    ax1.yaxis.offsetText.set_visible(False)
+    ax1.grid(alpha=0.25, axis="y")
+    fig.legend(loc="upper right", bbox_to_anchor=(0.9, 0.9))
+    plt.tight_layout()
+    plt.savefig(BUILD_YEAR_M2_IMAGE, dpi=180)
     plt.close()
