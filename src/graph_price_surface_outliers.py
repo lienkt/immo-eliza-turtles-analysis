@@ -1,47 +1,28 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
-
-from cleaning_price_lienmade import check_and_fix_price
-
-
-DATA_PATH = "./data/cleaned/clean_dataframe.json"
-FIXED_DATA_PATH = "./data/cleaned/clean_dataframe_fixed.json"
-PRICE_SURFACE_IMAGE = "./images/price_vs_livable_surface.png"
-BEDROOM_IMAGE = "./images/bedrooms_vs_price.png"
-OUTLIER_IMAGE = "./images/outlier_boxplots.png"
+#exemple import
+#from src.graph_price_surface_outliers import (
+    #make_price_vs_surface_graph,
+    #make_bedrooms_vs_price_graph,
+    #make_outlier_graph,
 
 
-def euro_tick(value, _):
-    # Show full euro values on the axis so nobody has to read 1e6 math.
-    return f"{int(value):,}"
-
-
-def set_plain_euro_axis():
-    ax = plt.gca()
-    ax.yaxis.set_major_formatter(FuncFormatter(euro_tick))
-    ax.yaxis.offsetText.set_visible(False)
-
-
-def load_and_fix_data():
-    # Grab the cleaned data file.
-    df = pd.read_json(DATA_PATH)
-
-    # Use Lien's price fix on the dataframe.
-    df = check_and_fix_price(df)
-
-    # Save the fixed file so the team can reuse it later.
-    df.to_json(
-        FIXED_DATA_PATH,
-        orient="records",
-        indent=2,
-        force_ascii=False,
-    )
-
-    return df
+PRICE_SURFACE_IMAGE = "../images/price_vs_livable_surface.png"
+BEDROOM_IMAGE = "../images/bedrooms_vs_price.png"
+OUTLIER_IMAGE = "../images/outlier_boxplots.png"
 
 
 def make_price_vs_surface_graph(df):
+    """Generate a scatter plot of price vs livable surface.
+
+    Input:
+        df: pandas DataFrame with livable_surface, price, and property_type columns.
+    """
+    def euro_tick(value, _):
+        # Show full euro values on the axis so nobody has to read 1e6 math.
+        return f"{int(value):,}"
+
     # Keep rows where we have the 3 values we need for this graph.
     graph_df = df[["livable_surface", "price", "property_type"]].dropna().copy()
 
@@ -79,7 +60,9 @@ def make_price_vs_surface_graph(df):
     plt.ylabel("Price (EUR)")
     plt.xlim(0, x_limit)
     plt.ylim(0, y_limit)
-    set_plain_euro_axis()
+    ax = plt.gca()
+    ax.yaxis.set_major_formatter(FuncFormatter(euro_tick))
+    ax.yaxis.offsetText.set_visible(False)
     plt.legend()
     plt.grid(alpha=0.25)
     plt.tight_layout()
@@ -88,6 +71,15 @@ def make_price_vs_surface_graph(df):
 
 
 def make_bedrooms_vs_price_graph(df):
+    """Generate a line graph of median price by bedroom count.
+
+    Input:
+        df: pandas DataFrame with bedroom_count, price, and property_type columns.
+    """
+    def euro_tick(value, _):
+        # Show full euro values on the axis so nobody has to read 1e6 math.
+        return f"{int(value):,}"
+
     # Keep rows where bedrooms, price, and property type are present.
     graph_df = df[["bedroom_count", "price", "property_type"]].dropna().copy()
 
@@ -125,7 +117,9 @@ def make_bedrooms_vs_price_graph(df):
     plt.xlabel("Bedroom count")
     plt.ylabel("Median price (EUR)")
     plt.xticks(range(0, 9))
-    set_plain_euro_axis()
+    ax = plt.gca()
+    ax.yaxis.set_major_formatter(FuncFormatter(euro_tick))
+    ax.yaxis.offsetText.set_visible(False)
     plt.legend()
     plt.grid(alpha=0.25)
     plt.tight_layout()
@@ -133,6 +127,11 @@ def make_bedrooms_vs_price_graph(df):
     plt.close()
 
 def make_outlier_graph(df):
+    """Generate a bar chart showing which numeric variables have the most outliers.
+
+    Input:
+        df: pandas DataFrame with price, livable_surface, total_surface, and bedroom_count columns.
+    """
     # Numeric columns that make sense for the outlier question.
     columns = {
         "price": "Price",
@@ -180,16 +179,3 @@ def make_outlier_graph(df):
     plt.tight_layout()
     plt.savefig(OUTLIER_IMAGE, dpi=180)
     plt.close()
-
-
-def main():
-    df = load_and_fix_data()
-    make_price_vs_surface_graph(df)
-    make_bedrooms_vs_price_graph(df)
-    make_outlier_graph(df)
-
-    print("Done: fixed price file and 3 graphs saved!")
-
-
-if __name__ == "__main__":
-    main()
