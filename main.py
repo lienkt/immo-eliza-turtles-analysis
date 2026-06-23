@@ -1,10 +1,12 @@
 #IMPORTS :
-
+from src import dataframe_cleaner
+import pandas as pd
 
 
 def main():
+    raw_df = pd.read_json("./data/raw/dataframe.json")
     #Cleaning process
-    #df = clean('input_file')
+    df = dataframe_cleaner(raw_df)
 
 
     #output_file
