@@ -1,4 +1,5 @@
-from src import export_most_least_expensive_municipalities_regions_report
+from src import export_most_least_expensive_municipalities_regions_report, dataframe_cleaner
+import pandas as pd
 import os
 
 def main():
@@ -12,6 +13,10 @@ def main():
   # Get project base directory
   base_dir = os.path.dirname(__file__)
   clean_dataframe_filepath = os.path.join(base_dir, "./data/cleaned/clean_dataframe.json")
+  raw_dataframe_filepath = os.path.join(base_dir, "./data/raw/dataframe.json")
+  raw_df = pd.read_json(raw_dataframe_filepath)
+  #Cleaning process
+  df = dataframe_cleaner(raw_df)
   
 
 # ---------------------------------------
