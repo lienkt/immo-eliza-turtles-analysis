@@ -494,8 +494,12 @@ def province_to_region(df):
     df["region"] = df["province"].map(province_to_region)
     return df
 
-def export_most_least_expensive_municipalities_regions_report(clean_dataframe_filepath, output_picture_filepath, output_report_filepath):
+def export_most_least_expensive_municipalities_regions_report(clean_dataframe_filepath, base_dir):
     df = pd.read_json(clean_dataframe_filepath)
     df_clean = clean_data(df)
-    df_clean = province_to_region(df_clean) 
+    df_clean = province_to_region(df_clean)
+
+    output_picture_filepath = os.path.join(base_dir, "./images/most_least_expensive_municipalities_regions.png")
+    output_report_filepath = os.path.join(base_dir, "./reports/most_least_expensive_municipalities_regions.pdf") 
+      
     draw_dashboard(df_clean, output_picture_filepath, output_report_filepath)
