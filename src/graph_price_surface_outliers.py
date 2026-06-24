@@ -1,12 +1,12 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
-PRICE_SURFACE_IMAGE = "./images/price_vs_livable_surface.png"
-BEDROOM_IMAGE = "./images/bedrooms_vs_price.png"
-OUTLIER_IMAGE = "./images/outlier_boxplots.png"
-PROPERTY_STATE_M2_IMAGE = "./images/property_state_price_per_m2.png"
-CONVENIENCE_SPACE_IMAGE = "./images/convenience_vs_space.png"
-BUILD_YEAR_M2_IMAGE = "./images/build_year_price_per_m2.png"
+PRICE_SURFACE_IMAGE = "../images/price_vs_livable_surface.png"
+BEDROOM_IMAGE = "../images/bedrooms_vs_price.png"
+OUTLIER_IMAGE = "../images/outlier_boxplots.png"
+PROPERTY_STATE_M2_IMAGE = "../images/property_state_price_per_m2.png"
+CONVENIENCE_SPACE_IMAGE = "../images/convenience_vs_space.png"
+BUILD_YEAR_M2_IMAGE = "../images/build_year_price_per_m2.png"
 
 
 def make_price_vs_surface_graph(df):
@@ -176,7 +176,7 @@ def make_outlier_graph(df):
     plt.savefig(OUTLIER_IMAGE, dpi=180)
     plt.close()
 
-
+#You can ignroe that one i was doing this while looking for creative idea.
 def make_property_state_price_m2_graph(df):
     """Generate a bar chart of median price per M2 by property state.
 
