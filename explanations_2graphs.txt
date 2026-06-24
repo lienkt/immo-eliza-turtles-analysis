@@ -1,0 +1,33 @@
+Based on the provided stacked bar chart showing the breakdown of property types (apartments vs. houses) across different Belgian provinces, here are the key conclusions you can draw:
+
+### 1. Dominance of Houses
+
+In almost every province, **houses significantly outnumber apartments**. The yellow sections (houses) dominate the chart for 10 out of the 11 listed regions.
+
+* **Hainaut** and **Liège** show the highest total number of houses, with 1,617 and 1,315 houses respectively.
+
+### 2. The Brussels Exception
+
+**Brussels is the only major anomaly in this dataset.** It is the sole region where apartments vastly outnumber houses.
+
+* Brussels has **1,130 apartments** compared to just **470 houses**.
+* This aligns with Brussels being a highly dense, urban capital city center where high-rise and multi-family residential buildings are the norm.
+
+### 3. Highest Concentration of Apartments
+
+Outside of Brussels, **Antwerp** has the highest absolute number of apartments (**952**), closely followed by **West-flanders** (**567**) and **Liège** (**531**).
+
+### 4. Lowest Overall Property Volume
+
+**Limburg** shows the lowest total property count in this specific dataset (totaling 721 properties: 259 apartments and 462 houses), closely followed by **East-flanders** (769 total properties).
+
+---
+
+### Summary Table of Highest/Lowest Regions
+
+| Metric | Province | Count |
+| --- | --- | --- |
+| **Most Apartments** | Brussels | 1,130 |
+| **Fewest Apartments** | Namur | 196 |
+| **Most Houses** | Hainaut | 1,617 |
+| **Fewest Houses** | Brabant-wallon | 395 |
