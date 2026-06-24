@@ -1,13 +1,12 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
-PRICE_SURFACE_IMAGE = "../images/price_vs_livable_surface.png"
-BEDROOM_IMAGE = "../images/bedrooms_vs_price.png"
-OUTLIER_IMAGE = "../images/outlier_boxplots.png"
-PROPERTY_STATE_M2_IMAGE = "../images/property_state_price_per_m2.png"
-CONVENIENCE_SPACE_IMAGE = "../images/convenience_vs_space.png"
-BUILD_YEAR_M2_IMAGE = "../images/build_year_price_per_m2.png"
-#all the path variable are here there is nothing else to change in the definition exept the graph themselves.
+PRICE_SURFACE_IMAGE = "./images/price_vs_livable_surface.png"
+BEDROOM_IMAGE = "./images/bedrooms_vs_price.png"
+OUTLIER_IMAGE = "./images/outlier_boxplots.png"
+PROPERTY_STATE_M2_IMAGE = "./images/property_state_price_per_m2.png"
+CONVENIENCE_SPACE_IMAGE = "./images/convenience_vs_space.png"
+BUILD_YEAR_M2_IMAGE = "./images/build_year_price_per_m2.png"
 
 
 def make_price_vs_surface_graph(df):
@@ -135,6 +134,8 @@ def make_outlier_graph(df):
         "livable_surface": "Livable surface",
         "total_surface": "Total surface",
         "bedroom_count": "Bedroom count",
+        "energy_consumption_kWh/m2/year": "Energy consumption",
+        "build_year": "build year"
     }
 
     outlier_counts = []
@@ -178,7 +179,7 @@ def make_outlier_graph(df):
     plt.close()
 
 #You can ignroe that one i was doing this while looking for creative idea.
-def make_property_state_price_m2_graph_imad(df):
+def make_property_state_price_m2_graph(df):
     """Generate a bar chart of median price per M2 by property state.
 
     Input:
@@ -390,3 +391,57 @@ def make_build_year_price_m2_graph(df):
     plt.tight_layout()
     plt.savefig(BUILD_YEAR_M2_IMAGE, dpi=180)
     plt.close()
+
+# -------------------------------------------------------------------
+# TEMPORARY: quick test runner (delete before merging into main)
+# -------------------------------------------------------------------
+if __name__ == "__main__":
+    import os
+
+    data_path = "./data/cleaned/clean_dataframe.json"
+    if not os.path.exists(data_path):
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        data_path = os.path.join(script_dir, "..", "data", "cleaned", "clean_dataframe.json")
+
+    df = pd.read_json(data_path)
+
+    # Convert float64 columns that should be integers to Int64 (nullable ints)
+    cols_to_Int64 = [
+        "postcode",
+        "price",
+        "build_year",
+        "bedroom_count",
+        "livable_surface",
+        "total_surface",
+        "garage",
+        "terrace",
+        "swimming_pool",
+        "energy_consumption_kWh/m2/year",
+        "preschool_distance_m",
+        "train_station_distance_m",
+        "supermarket_distance_m",
+        "price_per_m2",
+    ]
+    for col in cols_to_Int64:
+        if col in df.columns and df[col].dtype == "float64":
+            df[col] = df[col].astype("Int64")
+
+    make_price_vs_surface_graph(df)
+    print("  ->", os.path.abspath(PRICE_SURFACE_IMAGE))
+
+    make_bedrooms_vs_price_graph(df)
+    print("  ->", os.path.abspath(BEDROOM_IMAGE))
+
+    make_outlier_graph(df)
+    print("  ->", os.path.abspath(OUTLIER_IMAGE))
+
+    make_property_state_price_m2_graph(df)
+    print("  ->", os.path.abspath(PROPERTY_STATE_M2_IMAGE))
+
+    make_convenience_vs_space_graph(df)
+    print("  ->", os.path.abspath(CONVENIENCE_SPACE_IMAGE))
+
+    make_build_year_price_m2_graph(df)
+    print("  ->", os.path.abspath(BUILD_YEAR_M2_IMAGE))
+
+    print("\nAll graphs saved.")
