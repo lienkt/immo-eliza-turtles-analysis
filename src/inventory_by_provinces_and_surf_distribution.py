@@ -6,7 +6,7 @@ import seaborn as sns
 # from src import inventory_by_province, surface_distribution
 
 def inventory_by_province(df):
-    inventory = df.groupby(["Province", "Property_type"]).size().unstack(fill_value=0)
+    inventory = df.groupby(["province", "property_type"]).size().unstack(fill_value=0)
     fig, ax = plt.subplots(figsize=(12, 6))
     inventory.plot(kind="bar", stacked=True, ax=ax, color=["red", "yellow"])
     for container in ax.containers:
@@ -22,7 +22,7 @@ def inventory_by_province(df):
 
 def surface_distribution(df):
     plt.figure(figsize=(12, 6))
-    surface_filtered = df[(df["Livable_surface"] >= 0) & (df["Livable_surface"] <= 800)]
+    surface_filtered = df[(df["livable_surface"] >= 0) & (df["livable_surface"] <= 800)]
     sns.histplot(
         data=surface_filtered, 
         x="Livable_surface", 
