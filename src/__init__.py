@@ -1,0 +1,2 @@
+from .most_least_expensive_municipalities_regions import export_most_least_expensive_municipalities_regions_report
+
