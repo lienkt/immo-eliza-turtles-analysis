@@ -7,7 +7,12 @@ OUTLIER_IMAGE = "../images/outlier_boxplots.png"
 PROPERTY_STATE_M2_IMAGE = "../images/property_state_price_per_m2.png"
 CONVENIENCE_SPACE_IMAGE = "../images/convenience_vs_space.png"
 BUILD_YEAR_M2_IMAGE = "../images/build_year_price_per_m2.png"
-#all the path variable are here there is nothing else to change in the definition exept the graph themselves.
+
+# Change these at the top to align colours across the team's scripts.
+COLOR_PRICE_BAR = "#4c78a8" # bar colour shared by outlier + build‑year graphs
+COLOR_ENERGY_LINE = "#e45756"# energy‑consumption line in build‑year graph
+
+#all the path & colors variable are here there is nothing else to change in the definition exept the graph themselves.
 
 
 def make_price_vs_surface_graph(df):
@@ -159,7 +164,7 @@ def make_outlier_graph(df):
     outlier_df = pd.DataFrame(outlier_counts).sort_values("outliers")
 
     plt.figure(figsize=(10, 5))
-    bars = plt.barh(outlier_df["variable"], outlier_df["outliers"], color="#4c78a8")
+    bars = plt.barh(outlier_df["variable"], outlier_df["outliers"], color=COLOR_PRICE_BAR)
 
     for bar, percentage in zip(bars, outlier_df["percentage"]):
         plt.text(
@@ -364,7 +369,7 @@ def make_build_year_price_m2_graph(df):
     ax1.bar(
         grouped_df["build_period"],
         grouped_df["price_per_m2"],
-        color="#4c78a8",
+        color=COLOR_PRICE_BAR,
         alpha=0.8,
         label="Median price per M2",
     )
@@ -374,7 +379,7 @@ def make_build_year_price_m2_graph(df):
         grouped_df["build_period"],
         grouped_df["energy"],
         marker="o",
-        color="#e45756",
+        color=COLOR_ENERGY_LINE,
         linewidth=2,
         label="Median energy consumption",
     )
