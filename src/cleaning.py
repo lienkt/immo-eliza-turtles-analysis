@@ -1,3 +1,4 @@
+import html
 import pandas as pd
 
 def dataframe_cleaner(raw_df):
@@ -6,8 +7,6 @@ def dataframe_cleaner(raw_df):
     :params: pandas.DataFrame
     Returns pandas.DataFrame
     """
-    #temporary price fix
-    raw_df['price'] = raw_df['price'] // 100
 
     raw_df['price_per_m2'] = raw_df['price'] // raw_df['livable_surface']
 
@@ -25,10 +24,14 @@ def dataframe_cleaner(raw_df):
 
     clean_df = raw_df.rename(columns=new_column_names)
 
+    for col in ['city', 'province', 'address', 'nearest_city']:
+        clean_df[col] = clean_df[col].apply(lambda x: html.unescape(x) if isinstance(x, str) else x)
 
     clean_df.fillna(value={'garage': 0, 'swimming_pool': 0}, inplace=True)
 
     clean_df["property_state"] = clean_df["property_state"].replace("To be renovated", "To renovate")
+
+    clean_df = clean_df.drop_duplicates(subset=['postcode', 'price', 'livable_surface', 'address'])
 
     clean_df.to_json("../data/cleaned/clean_dataframe.json", orient="records", force_ascii=False, indent=4)
 
