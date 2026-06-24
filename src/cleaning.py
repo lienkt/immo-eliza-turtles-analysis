@@ -8,9 +8,9 @@ def dataframe_cleaner(raw_df):
     Returns pandas.DataFrame
     """
 
-    raw_df['price_per_m2'] = raw_df['price'] // raw_df['livable_surface']
+    raw_df['price_per_m2'] = raw_df['price'] / raw_df['livable_surface']
 
-    rows_to_Int64 = ["postcode", "price", "build_year", "bedroom_count", "livable_surface", "total_surface", "garage", "terrace", "swimming_pool", "peb_category", "Preschool_distance", "Train_station_distance", "Supermarket_distance", "price_per_m2"]
+    rows_to_Int64 = ["postcode", "price", "build_year", "bedroom_count", "livable_surface", "total_surface", "garage", "terrace", "swimming_pool", "peb_category", "Preschool_distance", "Train_station_distance", "Supermarket_distance"]
 
     for row in rows_to_Int64:
         if raw_df[row].dtype == "float64":
