@@ -1,21 +1,23 @@
-import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
-PRICE_SURFACE_IMAGE = "../images/price_vs_livable_surface.png"
-BEDROOM_IMAGE = "../images/bedrooms_vs_price.png"
-OUTLIER_IMAGE = "../images/outlier_boxplots.png"
-PROPERTY_STATE_M2_IMAGE = "../images/property_state_price_per_m2.png"
-CONVENIENCE_SPACE_IMAGE = "../images/convenience_vs_space.png"
-BUILD_YEAR_M2_IMAGE = "../images/build_year_price_per_m2.png"
+import pandas as pd
+import os
+
+PRICE_SURFACE_IMAGE = "./images/price_vs_livable_surface.png"
+BEDROOM_IMAGE = "./images/bedrooms_vs_price.png"
+OUTLIER_IMAGE = "./images/outlier_boxplots.png"
+PROPERTY_STATE_M2_IMAGE = "./images/property_state_price_per_m2.png"
+CONVENIENCE_SPACE_IMAGE = "./images/convenience_vs_space.png"
+BUILD_YEAR_M2_IMAGE = "./images/build_year_price_per_m2.png"
 
 # Change these at the top to align colours across the team's scripts.
-COLOR_PRICE_BAR = "#4c78a8" # bar colour shared by outlier + build‑year graphs
-COLOR_ENERGY_LINE = "#e45756"# energy‑consumption line in build‑year graph
+COLOR_PRICE_BAR = "#2166ac" # bar colour shared by outlier + build‑year graphs
+COLOR_ENERGY_LINE = "#d6604d"# energy‑consumption line in build‑year graph
 
 #all the path & colors variable are here there is nothing else to change in the definition exept the graph themselves.
 
 
-def make_price_vs_surface_graph(df):
+def make_price_vs_surface_graph(df, base_dir):
     """Generate a scatter plot of price vs livable surface.
 
     Input:
@@ -68,11 +70,11 @@ def make_price_vs_surface_graph(df):
     plt.legend()
     plt.grid(alpha=0.25)
     plt.tight_layout()
-    plt.savefig(PRICE_SURFACE_IMAGE, dpi=180)
+    plt.savefig(os.path.join(base_dir, PRICE_SURFACE_IMAGE), dpi=180)
     plt.close()
 
 
-def make_bedrooms_vs_price_graph(df):
+def make_bedrooms_vs_price_graph(df, base_dir):
     """Generate a line graph of median price by bedroom count.
 
     Input:
@@ -125,10 +127,10 @@ def make_bedrooms_vs_price_graph(df):
     plt.legend()
     plt.grid(alpha=0.25)
     plt.tight_layout()
-    plt.savefig(BEDROOM_IMAGE, dpi=180)
+    plt.savefig(os.path.join(base_dir, BEDROOM_IMAGE), dpi=180)
     plt.close()
 
-def make_outlier_graph(df):
+def make_outlier_graph(df, base_dir):
     """Generate a bar chart showing which numeric variables have the most outliers.
 
     Input:
@@ -179,11 +181,11 @@ def make_outlier_graph(df):
     plt.ylabel("Variable")
     plt.grid(alpha=0.25, axis="x")
     plt.tight_layout()
-    plt.savefig(OUTLIER_IMAGE, dpi=180)
+    plt.savefig(os.path.join(base_dir, OUTLIER_IMAGE), dpi=180)
     plt.close()
 
 #You can ignroe that one i was doing this while looking for creative idea.
-def make_property_state_price_m2_graph_imad(df):
+def make_property_state_price_m2_graph_imad(df, base_dir):
     """Generate a bar chart of median price per M2 by property state.
 
     Input:
@@ -242,11 +244,11 @@ def make_property_state_price_m2_graph_imad(df):
     plt.grid(alpha=0.25, axis="y")
     plt.legend(title="Property type")
     plt.tight_layout()
-    plt.savefig(PROPERTY_STATE_M2_IMAGE, dpi=180)
+    plt.savefig(os.path.join(base_dir, PROPERTY_STATE_M2_IMAGE), dpi=180)
     plt.close()
 
 
-def make_convenience_vs_space_graph(df):
+def make_convenience_vs_space_graph(df, base_dir):
     """Generate a graph comparing supermarket distance, price per M2, and surface.
 
     Input:
@@ -317,11 +319,11 @@ def make_convenience_vs_space_graph(df):
     ax1.grid(alpha=0.25, axis="y")
     fig.legend(loc="upper right", bbox_to_anchor=(0.9, 0.9))
     plt.tight_layout()
-    plt.savefig(CONVENIENCE_SPACE_IMAGE, dpi=180)
+    plt.savefig(os.path.join(base_dir, CONVENIENCE_SPACE_IMAGE), dpi=180)
     plt.close()
 
 
-def make_build_year_price_m2_graph(df):
+def make_build_year_price_m2_graph(df, base_dir):
     """Generate a graph comparing build period, price per M2, and energy consumption.
 
     Input:
@@ -393,5 +395,5 @@ def make_build_year_price_m2_graph(df):
     ax1.grid(alpha=0.25, axis="y")
     fig.legend(loc="upper right", bbox_to_anchor=(0.9, 0.9))
     plt.tight_layout()
-    plt.savefig(BUILD_YEAR_M2_IMAGE, dpi=180)
+    plt.savefig(os.path.join(base_dir, BUILD_YEAR_M2_IMAGE), dpi=180)
     plt.close()
