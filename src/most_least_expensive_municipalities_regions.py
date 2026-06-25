@@ -35,7 +35,15 @@ GEO_DATA = {
             "brabant-wallon"]}
 }
 
-def export_real_estate_pdf(summary, output_picture_top_cities_filepath, graph_filename, filename):
+def export_real_estate_pdf(
+    summary: pd.DataFrame,
+    output_picture_top_cities_filepath: str,
+    graph_filename: str,
+    filename: str
+) -> None:
+    """
+    Generates a full PDF real estate report using summary statistics and images.
+    """
 
     try:
         if os.path.exists(filename):
@@ -209,10 +217,10 @@ def export_real_estate_pdf(summary, output_picture_top_cities_filepath, graph_fi
     doc.build(elements)
 
 
-# =========================================================
-# BELGIUM SUMMARY 
-# =========================================================
-def get_belgium_summary(df):
+def get_belgium_summary(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Computes Belgium-wide summary statistics from city-level real estate data.
+    """
 
     city_stats = (
         df.groupby("city")
@@ -269,10 +277,12 @@ def get_belgium_summary(df):
         "median_max": round(city_stats["median_price"].max()),
     }])
 
-def plot_violin_top10_expensive_cities(df, output_path=None):
+def plot_violin_top10_expensive_cities(
+    df: pd.DataFrame,
+    output_path: str | None = None
+) -> None:
     """
-    Violin plot top 10 most expensive cities based on mean price.
-    Shows distribution of prices per city + mean + median lines.
+    Creates a violin plot for top 10 most expensive cities.
     """
 
     # =====================================================
@@ -378,6 +388,7 @@ def plot_violin_top10_expensive_cities(df, output_path=None):
     ax.set_title("Top 10 Most Expensive Cities - Price Distribution (Violin Plot)")
     ax.set_xlabel("")
     ax.set_ylabel("Price (€)")
+    ax.set_xticks(range(len(city_order)))
     ax.set_xticklabels(city_order, rotation=30, ha="right")
 
     plt.tight_layout()
@@ -390,11 +401,15 @@ def plot_violin_top10_expensive_cities(df, output_path=None):
 
     plt.close(fig)
 
-# =========================================================
-# MAIN
-# =========================================================
-def draw_dashboard(df, output_picture_top_cities_filepath, output_picture_filepath, output_report_filepath):
-
+def draw_dashboard(
+    df: pd.DataFrame,
+    output_picture_top_cities_filepath: str,
+    output_picture_filepath: str,
+    output_report_filepath: str
+) -> None:
+    """
+    Generates dashboard charts + violin plot + final PDF report.
+    """
     # -------------------------
     # REGION LEVEL
     # -------------------------
@@ -471,11 +486,6 @@ def draw_dashboard(df, output_picture_top_cities_filepath, output_picture_filepa
     x = np.arange(len(summary))
     width = 0.35
     fig, axes = plt.subplots(3, 1, figsize=(14, 14), constrained_layout=True)
-    fig.subplots_adjust(
-        top=0.92,
-        bottom=0.08,
-        hspace=0.3
-    )
 
     # -------------------------
     # 1 €/m²
@@ -624,7 +634,11 @@ def draw_dashboard(df, output_picture_top_cities_filepath, output_picture_filepa
     export_real_estate_pdf(summary, output_picture_top_cities_filepath, output_picture_filepath, output_report_filepath)
 
 
-def clean_data(df):
+def clean_data(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Cleans raw real estate dataset and computes price_per_m2.
+    """
+
     df = df.copy()
 
     df["price"] = pd.to_numeric(df["price"], errors="coerce")
@@ -646,8 +660,11 @@ def clean_data(df):
     df["province"] = df["province"].str.lower()
 
     return df
+def province_to_region(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Maps provinces to Belgian regions (Brussels, Flanders, Wallonia).
+    """
 
-def province_to_region(df):
     province_to_region = {
         province.lower(): region
         for region, info in GEO_DATA.items()
@@ -656,7 +673,14 @@ def province_to_region(df):
     df["region"] = df["province"].map(province_to_region)
     return df
 
-def export_most_least_expensive_municipalities_regions_report(clean_dataframe_filepath, base_dir):
+def export_most_least_expensive_municipalities_regions_report(
+    clean_dataframe_filepath: str,
+    base_dir: str
+) -> None:
+    """
+    Full pipeline:
+    load data → clean → map regions → generate dashboard → export report.
+    """
     df = pd.read_json(clean_dataframe_filepath)
     df_clean = clean_data(df)
     df_clean = province_to_region(df_clean)
@@ -666,3 +690,4 @@ def export_most_least_expensive_municipalities_regions_report(clean_dataframe_fi
     output_report_filepath = os.path.join(base_dir, "./reports/most_least_expensive_municipalities_regions.pdf") 
 
     draw_dashboard(df_clean, output_picture_top_cities_filepath, output_most_least_expensive_picture_filepath, output_report_filepath)
+    
