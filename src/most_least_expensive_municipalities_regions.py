@@ -36,6 +36,13 @@ GEO_DATA = {
 
 def export_real_estate_pdf(summary, graph_filename, filename):
 
+    try:
+        if os.path.exists(filename):
+            os.remove(filename)
+    except PermissionError:
+        print(f"{filename} is open. Close it first.")
+        return
+
     doc = SimpleDocTemplate(filename)
     styles = getSampleStyleSheet()
     elements = []
@@ -78,7 +85,8 @@ def export_real_estate_pdf(summary, graph_filename, filename):
             img.drawHeight = img.imageHeight * scale
 
             elements.append(img)
-        except:
+        except Exception as e:
+            print(e)
             elements.append(Paragraph("Dashboard image not found.", styles["Normal"]))
 
     # =====================================================
@@ -113,8 +121,10 @@ def export_real_estate_pdf(summary, graph_filename, filename):
              row["max_city_median"],
              f"€{row['median_max']:,.0f}"],
         ]
-
-        table = Table(table_data)
+        table = Table(
+            table_data,
+            colWidths=[80, 100, 80, 100, 80]
+        )
 
         table.setStyle(TableStyle([
             ("BACKGROUND", (0,0), (-1,0), colors.grey),
@@ -131,14 +141,14 @@ def export_real_estate_pdf(summary, graph_filename, filename):
         # INSIGHT TEXT (AUTO)
         # =================================================
         insight = f"""
-        <b>Key Insight:</b><br/>
+        <b>Key Insight:</b><br /><br />
         In {region}, the highest price per m² is in
         <b>{row['max_city_m2']}</b>, while the lowest is
-        <b>{row['min_city_m2']}</b>.<br/><br/>
+        <b>{row['min_city_m2']}</b>.<br /><br />
 
         The most expensive municipality overall is
         <b>{row['max_city_price']}</b>, while the cheapest is
-        <b>{row['min_city_price']}</b>.<br/><br/>
+        <b>{row['min_city_price']}</b>.<br /><br />
 
         This shows strong price inequality across municipalities in {region}.
         """
@@ -312,7 +322,7 @@ def draw_dashboard(df, output_picture_filepath, output_report_filepath):
 
     summary = summary.sort_values("region").reset_index(drop=True)
 
-    print(summary)
+    summary["region"] = summary["region"].str.strip().str.title()
 
     # =========================================================
     # PLOT
@@ -462,8 +472,11 @@ def draw_dashboard(df, output_picture_filepath, output_report_filepath):
             frameon=True
         )
 
+    if os.path.exists(output_picture_filepath):
+        os.remove(output_picture_filepath)
+
     plt.savefig(output_picture_filepath, dpi=300)
-    plt.show()
+    plt.close(fig)
 
     export_real_estate_pdf(summary, output_picture_filepath, output_report_filepath)
 
