@@ -471,17 +471,22 @@ def draw_dashboard(df, output_picture_filepath, output_report_filepath):
 def clean_data(df):
     df = df.copy()
 
+    # 1. convert FIRST (quan trọng)
     df["price"] = pd.to_numeric(df["price"], errors="coerce")
     df["livable_surface"] = pd.to_numeric(df["livable_surface"], errors="coerce")
 
     # 2. remove missing
     df = df.dropna(subset=["price", "livable_surface", "province"])
 
+    # 3. remove invalid values
+    df = df[(df["price"] > 0) & (df["livable_surface"] > 10)]
+
     # 4. compute feature
     df["price_per_m2"] = df["price"] / df["livable_surface"]
 
     # 6. normalize text
     df["province"] = df["province"].str.lower()
+    df = df.groupby("city").filter(lambda x: len(x) >= 10)
 
     return df
 
