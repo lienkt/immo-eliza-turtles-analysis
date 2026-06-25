@@ -34,12 +34,12 @@ def main():
     # Choose URL source mode
     # ---------------------------------------
     print("\n=== Choose report ===")
-    print("'1' : Report name...")
-    print("'2' : Report name...")
+    print("'1' : Make outlier graph")
+    print("'2' : Make price vs surface graph")
     print("'3' : Correlation matrix")
     print("'4' : Price vs property states")
-    print("'5' : Report name...")
-    print("'6' : Report name...")
+    print("'5' : Inventory by province")
+    print("'6' : Surface distribution")
     print("'7' : Most & least expensive municipalities/regions")
     print("'8' : To exit")
 
