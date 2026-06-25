@@ -7,6 +7,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import PageBreak
 from reportlab.platypus import Image
 import os
+import seaborn as sns
 
 # ── Colour palette we'll reuse ────────────────────────────────────────────────
 BLUE   = '#2166ac'
@@ -34,7 +35,7 @@ GEO_DATA = {
             "brabant-wallon"]}
 }
 
-def export_real_estate_pdf(summary, graph_filename, filename):
+def export_real_estate_pdf(summary, output_picture_top_cities_filepath, graph_filename, filename):
 
     try:
         if os.path.exists(filename):
@@ -89,10 +90,30 @@ def export_real_estate_pdf(summary, graph_filename, filename):
             print(e)
             elements.append(Paragraph("Dashboard image not found.", styles["Normal"]))
 
+
+    elements.append(PageBreak())
+    elements.append(Paragraph("<b>Top 10 Expensive Municipalities</b>", styles["Heading2"]))
+    elements.append(Spacer(1, 6))
+    if not os.path.exists(output_picture_top_cities_filepath):
+        elements.append(Paragraph("Top cities image missing", styles["Normal"]))
+    else:
+        try:
+            img = Image(output_picture_top_cities_filepath)
+
+            max_width = 400
+
+            scale = max_width / img.imageWidth
+            img.drawWidth = img.imageWidth * scale
+            img.drawHeight = img.imageHeight * scale
+
+            elements.append(img)
+        except Exception as e:
+            print(e)
+            elements.append(Paragraph("Top cities image not found.", styles["Normal"]))
+
     # =====================================================
     # REGION TABLES
     # =====================================================
-    elements.append(PageBreak())
     for _, row in summary.iterrows():
 
         region = row["region"].upper()
@@ -248,11 +269,131 @@ def get_belgium_summary(df):
         "median_max": round(city_stats["median_price"].max()),
     }])
 
+def plot_violin_top10_expensive_cities(df, output_path=None):
+    """
+    Violin plot top 10 most expensive cities based on mean price.
+    Shows distribution of prices per city + mean + median lines.
+    """
+
+    # =====================================================
+    # 1. GET TOP 10 CITIES BY MEAN PRICE
+    # =====================================================
+
+    city_rank = (
+        df.groupby("city")["price"]
+        .mean()
+        .sort_values(ascending=False)
+        .head(10)
+    )
+
+    top_cities = city_rank.index.tolist()
+
+    df_top = df[df["city"].isin(top_cities)].copy()
+
+    # sort for better visualization
+    city_order = top_cities
+
+    # =====================================================
+    # 2. PLOT
+    # =====================================================
+    fig, ax = plt.subplots(figsize=(14, 6))
+
+    sns.violinplot(
+        data=df_top,
+        x="city",
+        y="price",
+        order=city_order,
+        inner=None,
+        alpha=0.6,
+        ax=ax,
+        log_scale=True
+    )
+
+    sns.stripplot(
+        data=df_top,
+        x="city",
+        y="price",
+        order=city_order,
+        alpha=0.25,
+        size=3,
+        jitter=True,
+        ax=ax,
+        log_scale=True
+    )
+
+    # =====================================================
+    # 3. MEAN + MEDIAN LINES
+    # =====================================================
+    for i, city in enumerate(city_order):
+
+        city_data = df_top[df_top["city"] == city]["price"]
+
+        mean_val = city_data.mean()
+        median_val = city_data.median()
+
+        # mean line
+        ax.hlines(
+            mean_val,
+            i - 0.3,
+            i + 0.3,
+            color="white",
+            lw=2.5
+        )
+        ax.hlines(
+            mean_val,
+            i - 0.3,
+            i + 0.3,
+            color=BLUE,
+            lw=2,
+            ls="--"
+        )
+        ax.text(
+            i + 0.35,
+            mean_val,
+            f"{mean_val:,.0f}",
+            va="center",
+            fontsize=8
+        )
+
+        # median line
+        ax.hlines(
+            median_val,
+            i - 0.3,
+            i + 0.3,
+            color=ORANGE,
+            lw=2,
+            ls="--"
+        )
+        ax.text(
+            i + 0.35,
+            median_val,
+            f"{median_val:,.0f}",
+            va="center",
+            fontsize=8
+        )
+
+    # =====================================================
+    # 4. STYLE
+    # =====================================================
+    ax.set_title("Top 10 Most Expensive Cities - Price Distribution (Violin Plot)")
+    ax.set_xlabel("")
+    ax.set_ylabel("Price (€)")
+    ax.set_xticklabels(city_order, rotation=30, ha="right")
+
+    plt.tight_layout()
+
+    # =====================================================
+    # 5. SAVE (optional)
+    # =====================================================
+    if output_path:
+        plt.savefig(output_path, dpi=300, bbox_inches="tight")
+
+    plt.close(fig)
 
 # =========================================================
 # MAIN
 # =========================================================
-def draw_dashboard(df, output_picture_filepath, output_report_filepath):
+def draw_dashboard(df, output_picture_top_cities_filepath, output_picture_filepath, output_report_filepath):
 
     # -------------------------
     # REGION LEVEL
@@ -478,7 +619,9 @@ def draw_dashboard(df, output_picture_filepath, output_report_filepath):
     plt.savefig(output_picture_filepath, dpi=300)
     plt.close(fig)
 
-    export_real_estate_pdf(summary, output_picture_filepath, output_report_filepath)
+    plot_violin_top10_expensive_cities(df, output_picture_top_cities_filepath)
+
+    export_real_estate_pdf(summary, output_picture_top_cities_filepath, output_picture_filepath, output_report_filepath)
 
 
 def clean_data(df):
@@ -486,6 +629,12 @@ def clean_data(df):
 
     df["price"] = pd.to_numeric(df["price"], errors="coerce")
     df["livable_surface"] = pd.to_numeric(df["livable_surface"], errors="coerce")
+
+    # FILTER CITIES WITH > 50 ROWS
+    city_counts = df["city"].value_counts()
+    valid_cities = city_counts[city_counts > 50].index
+
+    df = df[df["city"].isin(valid_cities)].copy()
 
     # 2. remove missing
     df = df.dropna(subset=["price", "livable_surface", "province"])
@@ -511,8 +660,9 @@ def export_most_least_expensive_municipalities_regions_report(clean_dataframe_fi
     df = pd.read_json(clean_dataframe_filepath)
     df_clean = clean_data(df)
     df_clean = province_to_region(df_clean)
-
-    output_picture_filepath = os.path.join(base_dir, "./images/most_least_expensive_municipalities_regions.png")
-    output_report_filepath = os.path.join(base_dir, "./reports/most_least_expensive_municipalities_regions.pdf") 
       
-    draw_dashboard(df_clean, output_picture_filepath, output_report_filepath)
+    output_picture_top_cities_filepath = os.path.join(base_dir, "./images/most_expensive_municipalities.png")
+    output_most_least_expensive_picture_filepath = os.path.join(base_dir, "./images/most_least_expensive_municipalities_regions.png")
+    output_report_filepath = os.path.join(base_dir, "./reports/most_least_expensive_municipalities_regions.pdf") 
+
+    draw_dashboard(df_clean, output_picture_top_cities_filepath, output_most_least_expensive_picture_filepath, output_report_filepath)
