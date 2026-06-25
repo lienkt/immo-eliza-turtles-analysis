@@ -44,37 +44,36 @@ def price_vs_property_states(df, base_dir, PALETTE):
     :params: list of string hex colours 
     """
     property_state = df.groupby('property_state', observed=True)["price_per_m2"].agg(["count", "median", "mean"])
-    new_row_order = ['New', 'Excellent', 'Fully renovated', 'Normal', 'To renovate', 'To restore', 'To demolish', 'Under construction']
+    new_row_order = ['New', 'Excellent', 'Fully renovated', 'Under construction', 'Normal', 'To renovate', 'To restore', 'To demolish']
     property_state = property_state.reindex(new_row_order)
 
-    fig, ax = plt.subplots(figsize=(16, 6))
-    property_state[["median", "mean", "count"]].plot(kind='bar', ax=ax, color=PALETTE, edgecolor='white', width=0.75, rot=45)
+    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+    fig.suptitle('Cheaper prices can hide "work ahead"', fontweight='bold', fontsize=20)
+    property_state["median"].plot(kind='bar', ax=axes[0], color=PALETTE[0], edgecolor='white', width=0.75, rot=45)
 
-    ax2 = ax.twinx()  # dual y-axis
+    axes[0].set_title('Property state seems to influence prices', fontsize=16, pad=20)
+    axes[0].set_ylabel('Median Prices / m$^{2}$', fontweight='bold')
+    axes[0].set_xlabel('Property states', fontweight='bold')
+    axes[0].yaxis.set_major_formatter(mticker.FuncFormatter(lambda x,_: f'€{x/1000:.1f}k'))
 
-    ax2.plot(range(len(property_state.index)), property_state['mean'],
-            color=PALETTE[1], lw=2, marker='o', ls='--', ms=5, alpha=0.7, label='Avg price/m2')
-
-    # We call plt.draw() first to ensure matplotlib has finished calculating ax's auto-limits
-    fig.canvas.draw() 
-    ax2.set_ylim(ax.get_ylim())
-
-    ax.set_title('Cheaper price can mean work ahead', fontsize=18, pad=20)
-    ax.set_ylabel('Prices / m$^{2}$', fontweight='bold')
-    ax.set_xlabel('Property states', fontweight='bold')
-    ax.legend(title='Legend', fontsize=8)
-    ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x,_: f'€{x/1000:.0f}k'))
-
-    ax2.get_yaxis().set_visible(False)
-
-    for container in ax.containers:
+    for container in axes[0].containers:
         labels = [f"{v.get_height():.0f}" for v in container]
-        ax.bar_label(
+        axes[0].bar_label(
             container, 
             padding=4, 
             fontsize=9,
+            fontweight='bold',
             labels=labels
         )
+
+    axes[1].barh(property_state.index[::-1], property_state['count'].values[::-1],
+                color=PALETTE[1], alpha=0.85, edgecolor='white')
+
+    for i, (state, val) in enumerate(zip(property_state.index[::-1], property_state["count"].values[::-1])):
+        axes[1].text(val + 1, i, str(val), va='center', fontsize=9, fontweight='bold')
+
+    axes[1].set_xlabel('Number of Entries', fontweight='bold')
+    axes[1].set_title('Very few properties to restore, demolish or in contruction', fontsize=16, pad=20)
 
     plt.tight_layout()
     plt.savefig(os.path.join(base_dir, './images/price_vs_property_states.png'), dpi=130, bbox_inches='tight')
