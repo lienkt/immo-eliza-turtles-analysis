@@ -1,7 +1,7 @@
 import html
 import pandas as pd
 
-def dataframe_cleaner(raw_df):
+def dataframe_cleaner(raw_df, clean_dataframe_filepath):
     """
     Function cleaning a raw dataframe and saving it in a json file
     :params: pandas.DataFrame
@@ -32,7 +32,6 @@ def dataframe_cleaner(raw_df):
 
     clean_df["property_state"] = clean_df["property_state"].replace("To be renovated", "To renovate")
 
-
-    clean_df.to_json("../data/cleaned/clean_dataframe.json", orient="records", force_ascii=False, indent=4)
+    clean_df.to_json(clean_dataframe_filepath, orient="records", force_ascii=False, indent=4)
 
     return clean_df

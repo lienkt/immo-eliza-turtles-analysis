@@ -1,9 +1,15 @@
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import numpy as np
+import os
 import seaborn as sns
 
-def correlations_matrix(df):
+def correlations_matrix(df, base_dir):
+    """
+    Function creating a correlation matrix and saves it
+    :params: pandas.DataFrame
+    :params: string root folder path
+    """
     numerical = df[['price', 'price_per_m2','livable_surface', 'total_surface', 'bedroom_count', 'swimming_pool', 'property_state', 'build_year', "energy_consumption_kWh/m2/year", 'nearest_city_distance_km', "preschool_distance_m", "train_station_distance_m", "supermarket_distance_m"]]
 
     numerical['nearest_city_distance_km'] = numerical['nearest_city_distance_km'].round().astype("Int64")
@@ -20,11 +26,17 @@ def correlations_matrix(df):
     ax.set_title('Correlation matrix')
     
     plt.tight_layout()
-    plt.savefig('../images/correlation_matrix.png', dpi=130, bbox_inches='tight')
+    plt.savefig(os.path.join(base_dir, './images/correlation_matrix.png'), dpi=130, bbox_inches='tight')
     plt.close(fig=fig)
 
-def price_vs_property_states(df, PALETTE):
-    
+def price_vs_property_states(df, base_dir, PALETTE):
+    """
+    Function creating a grouped bar chart of price per 
+    property states and saves it
+    :params: pandas.DataFrame
+    :params: string root folder path
+    :params: list of string hex colours 
+    """
     property_state = df.groupby('property_state', observed=True)["price"].agg(["count", "median", "mean"])
     new_row_order = ['Excellent', 'New', 'Fully renovated', 'Normal', 'To renovate', 'To restore', 'To demolish', 'Under construction']
     property_state = property_state.reindex(new_row_order)
@@ -61,5 +73,5 @@ def price_vs_property_states(df, PALETTE):
         )
 
     plt.tight_layout()
-    plt.savefig('../images/price_vs_property_states.png', dpi=130, bbox_inches='tight')
+    plt.savefig(os.path.join(base_dir, './images/price_vs_property_states.png'), dpi=130, bbox_inches='tight')
     plt.close(fig=fig)
