@@ -38,8 +38,8 @@ def main():
     print("'2' : Build year vs price")
     print("'3' : Correlation matrix")
     print("'4' : Price vs property states")
-    print("'5' : Report name...")
-    print("'6' : Report name...")
+    print("'5' : Nb of Houses vs Apartments by Regions")
+    print("'6' : Distribution of properties vs surface")
     print("'7' : Most & least expensive municipalities/regions")
     print("'8' : To exit")
 
