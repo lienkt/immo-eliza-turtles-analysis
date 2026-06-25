@@ -17,14 +17,20 @@ def correlations_matrix(df, base_dir):
     states_dict = {"Excellent": 5, "Fully renovated": 3, "New": 4, "Normal": 2, "To demolish": None, "To renovate": 1, "To restore": None, "Under construction": None}
     numerical['property_state'] = numerical['property_state'].map(states_dict)
 
-    fig, ax = plt.subplots(figsize=(8, 8))
+    sns.set_theme(style='white', palette='muted', font_scale=1.1)
+    fig, ax = plt.subplots(figsize=(10, 9))
 
     corr = numerical.corr(method='spearman')
     mask = np.triu(np.ones_like(corr, dtype=bool))
     sns.heatmap(corr, ax=ax, mask=mask, cmap='RdBu_r', center=0, vmin=-1, vmax=1, annot=True, fmt='.2f',
-                linewidths=0.5, annot_kws={'size': 8}, cbar_kws={'shrink': 0.8})
-    ax.set_title('Correlation matrix')
-    
+                linewidths=1.5, linecolor='white',annot_kws={'size': 9, 'weight': 'medium'}, cbar_kws={'shrink': 0.7, 'label': 'Spearman Correlation'})
+    ax.set_title('Correlation matrix', fontsize=16, pad=25, fontweight='bold', loc='left')
+
+    ax.set_xticklabels([label.get_text().replace('_', ' ').title() for label in ax.get_xticklabels()], rotation=45, horizontalalignment='right', fontsize=10)
+    ax.set_yticklabels([label.get_text().replace('_', ' ').title() for label in ax.get_yticklabels()], rotation=0, fontsize=10)
+
+    ax.tick_params(left=False, bottom=True)
+    sns.despine(left=True, bottom=True)
     plt.tight_layout()
     plt.savefig(os.path.join(base_dir, './images/correlation_matrix.png'), dpi=130, bbox_inches='tight')
     plt.close(fig=fig)
