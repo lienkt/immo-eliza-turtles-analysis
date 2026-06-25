@@ -11,8 +11,8 @@ CONVENIENCE_SPACE_IMAGE = "./images/convenience_vs_space.png"
 BUILD_YEAR_M2_IMAGE = "./images/build_year_price_per_m2.png"
 
 # Change these at the top to align colours across the team's scripts.
-COLOR_PRICE_BAR = "#4c78a8" # bar colour shared by outlier + build‑year graphs
-COLOR_ENERGY_LINE = "#e45756"# energy‑consumption line in build‑year graph
+COLOR_PRICE_BAR = "#2166ac" # bar colour shared by outlier + build‑year graphs
+COLOR_ENERGY_LINE = "#d6604d"# energy‑consumption line in build‑year graph
 
 #all the path & colors variable are here there is nothing else to change in the definition exept the graph themselves.
 

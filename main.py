@@ -1,4 +1,4 @@
-from src import export_most_least_expensive_municipalities_regions_report, dataframe_cleaner, correlations_matrix, price_vs_property_states, inventory_by_province, surface_distribution, make_outlier_graph, make_price_vs_surface_graph
+from src import export_most_least_expensive_municipalities_regions_report, dataframe_cleaner, correlations_matrix, price_vs_property_states, inventory_by_province, surface_distribution, make_outlier_graph, make_build_year_price_m2_graph
 import pandas as pd
 import os
 
@@ -34,8 +34,8 @@ def main():
     # Choose URL source mode
     # ---------------------------------------
     print("\n=== Choose report ===")
-    print("'1' : Report name...")
-    print("'2' : Report name...")
+    print("'1' : Most common outlier")
+    print("'2' : Build year vs price")
     print("'3' : Correlation matrix")
     print("'4' : Price vs property states")
     print("'5' : Report name...")
@@ -53,7 +53,7 @@ def main():
 
         elif option == "2":
             print("Report is generating")
-            make_price_vs_surface_graph(df, base_dir)
+            make_build_year_price_m2_graph(df, base_dir)
 
         elif option == "3":
             print("Report is generating")

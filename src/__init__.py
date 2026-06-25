@@ -1,5 +1,5 @@
 from .cleaning import dataframe_cleaner
 from .correlations_and_property_states import correlations_matrix, price_vs_property_states
-from .graph_price_surface_outliers import make_outlier_graph, make_price_vs_surface_graph
+from .graph_price_surface_outliers import make_outlier_graph, make_build_year_price_m2_graph
 from .inventory_by_provinces_and_surf_distribution import inventory_by_province, surface_distribution
 from .most_least_expensive_municipalities_regions import export_most_least_expensive_municipalities_regions_report
