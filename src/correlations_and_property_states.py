@@ -31,45 +31,43 @@ def correlations_matrix(df, base_dir):
 
 def price_vs_property_states(df, base_dir, PALETTE):
     """
-    Function creating a grouped bar chart of price per 
-    property states and saves it
+    Function creating a grouped bar chart of price per meter squared in 
+    relation to property states and saves it
     :params: pandas.DataFrame
     :params: string root folder path
     :params: list of string hex colours 
     """
-    property_state = df.groupby('property_state', observed=True)["price"].agg(["count", "median", "mean"])
-    new_row_order = ['Excellent', 'New', 'Fully renovated', 'Normal', 'To renovate', 'To restore', 'To demolish', 'Under construction']
+    property_state = df.groupby('property_state', observed=True)["price_per_m2"].agg(["count", "median", "mean"])
+    new_row_order = ['New', 'Excellent', 'Fully renovated', 'Normal', 'To renovate', 'To restore', 'To demolish', 'Under construction']
     property_state = property_state.reindex(new_row_order)
 
-    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
-    property_state[["median", "mean"]].plot(kind='bar', ax=axes[0], color=PALETTE, edgecolor='white', width=0.75, rot=45)
+    fig, ax = plt.subplots(figsize=(16, 6))
+    property_state[["median", "mean", "count"]].plot(kind='bar', ax=ax, color=PALETTE, edgecolor='white', width=0.75, rot=45)
 
-    axes[0].set_title('Cheaper price can mean work ahead')
-    axes[0].set_ylabel('Prices €')
-    axes[0].set_xlabel('Property states')
-    axes[0].legend(title='Agg', fontsize=8)
-    axes[0].yaxis.set_major_formatter(mticker.FuncFormatter(lambda x,_: f'€{x/1000:.0f}k'))
+    ax2 = ax.twinx()  # dual y-axis
 
-    for container in axes[0].containers:
-        labels = [f"{v.get_height()/1000:.0f}k" for v in container]
-        axes[0].bar_label(
+    ax2.plot(range(len(property_state.index)), property_state['mean'],
+            color=PALETTE[1], lw=2, marker='o', ls='--', ms=5, alpha=0.7, label='Avg price/m2')
+
+    # We call plt.draw() first to ensure matplotlib has finished calculating ax's auto-limits
+    fig.canvas.draw() 
+    ax2.set_ylim(ax.get_ylim())
+
+    ax.set_title('Cheaper price can mean work ahead', fontsize=18, pad=20)
+    ax.set_ylabel('Prices / m$^{2}$', fontweight='bold')
+    ax.set_xlabel('Property states', fontweight='bold')
+    ax.legend(title='Legend', fontsize=8)
+    ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x,_: f'€{x/1000:.0f}k'))
+
+    ax2.get_yaxis().set_visible(False)
+
+    for container in ax.containers:
+        labels = [f"{v.get_height():.0f}" for v in container]
+        ax.bar_label(
             container, 
             padding=4, 
             fontsize=9,
             labels=labels
-        )
-
-    property_state[["count"]].plot(kind='bar', ax=axes[1], color=PALETTE, edgecolor='white', width=0.75, rot=45)
-
-    axes[1].set_title('Too few demolitions and constructions')
-    axes[1].set_ylabel('Entries')
-    axes[1].set_xlabel('Property states')
-
-    for container in axes[1].containers:
-        axes[1].bar_label(
-            container, 
-            padding=4, 
-            fontsize=9
         )
 
     plt.tight_layout()
